@@ -1,0 +1,1 @@
+export const SHORT_URL_REPOSITORY = Symbol('SHORT_URL_REPOSITORY');
