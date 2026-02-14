@@ -4,8 +4,6 @@ import {
 	Controller,
 	Get,
 	Param,
-	Redirect,
-	NotFoundException,
 	HttpCode,
 } from '@nestjs/common';
 import { UrlService } from './url.service';
@@ -23,7 +21,6 @@ export class UrlController {
 
 	@Get(':shortCode')
 	async getUrl(@Param('shortCode') shortCode: string) {
-		const originalUrl = await this.urlService.getOriginalUrl(shortCode);
-		return { originalUrl };
+		return this.urlService.getOriginalUrl(shortCode);
 	}
 }

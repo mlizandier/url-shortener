@@ -1,7 +1,7 @@
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { SHORT_URL_REPOSITORY } from '../data/data.symbols';
-import { type IShortUrlRepository } from '../data/short-url/short-url.repository';
 import { nanoid } from 'nanoid';
+import { type IShortUrlRepository } from '../data/short-url/short-url.repository';
 
 @Injectable()
 export class UrlService {
@@ -24,12 +24,16 @@ export class UrlService {
     }
   }
 
-  async getOriginalUrl(shortCode: string): Promise<string> {
+  async getOriginalUrl(shortCode: string) {
     const url = await this.urlRepository.findByShortCode(shortCode);
     if (!url) {
       throw new NotFoundException('Short URL not found');
     }
-    return url.originalUrl;
+    return {
+      shortCode: url.shortCode,
+      originalUrl: url.originalUrl,
+      createdAt: url.createdAt,
+    };
   }
 
   private static generateShortCode(): string {

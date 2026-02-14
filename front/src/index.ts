@@ -9,7 +9,8 @@ const server = serve({
         const shortCode = req.params.shortCode;
 
         try {
-          const response = await fetch(`http://localhost:3000/short-urls/${shortCode}`);
+          const apiUrl = process.env.API_URL || 'http://localhost:3000';
+          const response = await fetch(`${apiUrl}/short-urls/${shortCode}`);
 
           if (response.ok) {
             const data = await response.json();
