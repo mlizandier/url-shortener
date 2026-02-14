@@ -22,9 +22,8 @@ export class UrlController {
 	}
 
 	@Get(':shortCode')
-	@Redirect()
-	async redirect(@Param('shortCode') shortCode: string) {
+	async getUrl(@Param('shortCode') shortCode: string) {
 		const originalUrl = await this.urlService.getOriginalUrl(shortCode);
-		return { url: originalUrl, statusCode: 302 };
+		return { originalUrl };
 	}
 }
