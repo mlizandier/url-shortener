@@ -2,12 +2,18 @@
 
 A fast, simple URL shortener.
 
+## Requirements
+- docker
+- docker daemon running
+
 ## How to use this app
 
 - Create a `.env` file in `front/` and `back/` based on the `.env.dist` files
 - In a terminal run the command `make start`
 
-You can then access the frontend on the URL that you have given it. The base local URL is : http://localhost:3001
+You can then access the frontend on the URL that you have given it.
+
+The base local URL is : http://localhost:3001
 
 ### Bonus
 
@@ -16,7 +22,6 @@ You can activate the Google Safe Browsing API by setting up a Google Cloud proje
 You also have to generate an API key and in the `back/` folder `.env` you should set the value of :
 - `GOOGLE_SAFE_BROWSING_API_KEY` to your API key value.
 - `ACTIVATE_GOOGLE_SAFE_BROWSING` to `true` to activate it.
-
 
 
 ## Technical overview
@@ -55,8 +60,8 @@ erDiagram
         TIMESTAMP updated_at
     }
     user_short_url {
-        UUID user_id PK1
-        UUID short_code_id PK2
+        UUID user_id PK
+        UUID short_code_id PK
     }
     short_url {
         UUID id PK
@@ -159,12 +164,12 @@ erDiagram
         TIMESTAMP updated_at
     }
     user_company {
-        UUID user_id PK1
-        UUID company_id PK2
+        UUID user_id PK
+        UUID company_id PK
     }
     user_short_url {
-        UUID user_id PK1
-        UUID short_code_id PK2
+        UUID user_id PK
+        UUID short_code_id PK
     }
     short_url {
         UUID id PK
@@ -181,8 +186,8 @@ erDiagram
         TIMESTAMP updated_at
     }
     company_custom_short_url {
-        UUID company_id PK1
-        TEXT custom_short_code PK2
+        UUID company_id PK
+        TEXT custom_short_code PK
         UUID short_code_id FK
         TIMESTAMP created_at
         TIMESTAMP updated_at
@@ -209,12 +214,12 @@ erDiagram
         TIMESTAMP updated_at
     }
     user_company {
-        UUID user_id PK1
-        UUID company_id PK2
+        UUID user_id PK
+        UUID company_id PK
     }
     user_short_url {
-        UUID user_id PK1
-        UUID short_code_id PK2
+        UUID user_id PK
+        UUID short_code_id PK
     }
     short_url {
         UUID id PK
@@ -259,8 +264,8 @@ erDiagram
         TIMESTAMP updated_at
     }
     company_custom_short_url {
-        UUID company_id PK1
-        TEXT custom_short_code PK2
+        UUID company_id PK
+        TEXT custom_short_code PK
         UUID short_code_id FK
         TIMESTAMP created_at
         TIMESTAMP updated_at
