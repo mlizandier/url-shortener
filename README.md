@@ -1,6 +1,6 @@
 # URL Shortener
 
-This is an URL shortener app for a technical interview @ Stoïk.
+A fast, simple URL shortener.
 
 ## How to use this app
 
@@ -19,13 +19,13 @@ You also have to generate an API key and in the `back/` folder `.env` you should
 
 
 
-## Technical choices :
+## Technical overview
 
 ### Backend:
 - Usage of NestJS and TypeScript because of the ease of use. NestJS provides a good structure and it is a framework I've already used in the past.
 - Usage of the library `nanoid` to create the short codes for the links. The library uses these symbols to form an ID : `A-Za-z0-9_-`. With a length of 7, a collision has a tiny chance of happening because there are `(26 + 26 + 10 + 2)^7 = 4 398 046 511 104` possibilities. With 1000 URLs generated per second it would take 140 years to encounter all possibilities, so I think we are pretty safe (for now... let's talk about it in 140 years).
 - Usage of Google Safe Browsing (GSB) API. Since people may use a link shortener to hide their unsafe domain, I decided to use an API that checked whether a domain was blacklisted or not. I debated using either GSB or something called URLhaus, that has a huge database containing thousands of blacklisted domains. GSB is pretty simple to use and free of charge as long as we are not using it in a commercial way.
-    - In the case of this technical assessment I decided to feature flag it and set it as disabled by default. But if you wish to see it work, simply create an API key that has the rights to use the GSB API.
+    - The feature is behind a feature flag and disabled by default. To enable it, create an API key with access to the GSB API.
 
 As for the database and the interaction between the API and itself:
 - PostgreSQL because it's a solid default for relational data and pairs well with Prisma.
@@ -36,17 +36,18 @@ As for the database and the interaction between the API and itself:
 
 ### Frontend
 
-- I chose React with Bun as the runtime. Bun replaces the entire Node + Vite + Express stack with a single tool: it serves, bundles, handles HMR in dev, and acts as the package manager. No extra build tooling needed. DX wise, it felt like a good fit for a project of this scope.
+- I chose React with Bun as the runtime. Bun replaces the entire Node + Vite + Express stack with a single tool: it serves, bundles, handles HMR in dev, and acts as the package manager. No extra build tooling needed. DX-wise, it felt like a good fit.
 - Shadcn and Tailwind for the UI. Shadcn gives me primitives with full control over styling and behavior, unlike opinionated design systems that can be hard to customize.
 
 ## Next steps
 
 ### Product
-- User login. Adding a login feature may be useful, some users may want to easily retrieve their past links and manage them (delete, set behin a password, check analytics...)
+- User login. Adding a login feature may be useful, some users may want to easily retrieve their past links and manage them (delete, set a password, check analytics...)
+    - a table `user_short_url` joining the `user` and `short_url` can be created. Since I want to keep the users with no account to create short URLs, this table avoids the awkward case where `short_url` has a `user_id` field which is a foreign key but can also be nullable.
 ```mermaid
 erDiagram
     user ||--o{ user_short_url: ""
-    user_short_url }o--o{ short_url: ""
+    user_short_url }o--|| short_url: ""
     user {
         UUID id PK
         TEXT username
@@ -66,6 +67,7 @@ erDiagram
     }
 ```
 - Analyze clicks. We could imagine a new table and a new NestJS module tracking the number of times the short code has been accessed.
+    - by exploiting the data collected we can create dashboards showing which short link worked best
 ```mermaid
 erDiagram
     short_url ||--|| analytics : ""
@@ -84,7 +86,8 @@ erDiagram
         TIMESTAMP updated_at
     }
 ```
-- Another evolution can be to store per clicks data. In a new table we could store the timestamp, the referrer, IP etc.
+- Another evolution can be to store per-click data. In a new table we could store the timestamp, the referrer, IP etc.
+    - the dashboard could be enhanced with new data, IP country origin, time where it was clicked the most etc
 ```mermaid
 erDiagram
     short_url ||--|| analytics : ""
@@ -186,7 +189,7 @@ erDiagram
     }
 ```
 
-If all features were implemented :
+Full feature roadmap :
 ```mermaid
 erDiagram
     user ||--o{ user_short_url: ""
@@ -204,6 +207,10 @@ erDiagram
         TEXT username
         TIMESTAMP created_at
         TIMESTAMP updated_at
+    }
+    user_company {
+        UUID user_id PK1
+        UUID company_id PK2
     }
     user_short_url {
         UUID user_id PK1
