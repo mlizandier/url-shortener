@@ -6,12 +6,13 @@ import Header from './components/header';
 import ShortenForm from './components/shorten-form';
 import ErrorBanner from '../../components/error-banner';
 import ShortUrlResult from './components/short-url-result';
+import { getErrorMessage } from './helpers/getErrorMessage';
 
 const UrlShortener = () => {
   const [url, setUrl] = useState('');
   const [copied, setCopied] = useState(false);
 
-  const { mutate, data, isPending, isError, reset } = useCreateShortUrl();
+  const { mutate, data, isPending, isError, error, reset } = useCreateShortUrl();
 
   const shortUrl = data ? `${process.env.BUN_PUBLIC_FRONTEND_URL}/${data.shortCode}` : null;
 
@@ -50,7 +51,7 @@ const UrlShortener = () => {
           />
 
           {isError ? (
-            <ErrorBanner label="Failed to shorten URL. Please try again." />
+            <ErrorBanner label={getErrorMessage(error)} />
           ) : null}
 
           {shortUrl && data ? (

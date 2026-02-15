@@ -6,8 +6,8 @@ import {
 	Param,
 	HttpCode,
 } from '@nestjs/common';
-import { UrlService } from './url.service';
 import { CreateUrlDto } from './url.dto';
+import { UrlService } from './url.service';
 
 @Controller({ path: 'short-urls' })
 export class UrlController {
