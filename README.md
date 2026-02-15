@@ -52,7 +52,7 @@ As for the database and the interaction between the API and itself:
 ```mermaid
 erDiagram
     user ||--o{ user_short_url: ""
-    user_short_url }o--|| short_url: ""
+    user_short_url |o--|| short_url: ""
     user {
         UUID id PK
         TEXT username
@@ -61,11 +61,10 @@ erDiagram
     }
     user_short_url {
         UUID user_id PK
-        UUID short_code_id PK
+        TEXT short_url_code PK
     }
     short_url {
-        UUID id PK
-        TEXT short_code UK
+        TEXT short_code PK
         TEXT original_url
         TIMESTAMP created_at
         TIMESTAMP updated_at
@@ -75,17 +74,16 @@ erDiagram
     - by exploiting the data collected we can create dashboards showing which short link worked best
 ```mermaid
 erDiagram
-    short_url ||--|| analytics : ""
+    short_url ||--o| analytics : ""
     short_url {
-        UUID id PK
-        TEXT short_code UK
+        TEXT short_code PK
         TEXT original_url
         TIMESTAMP created_at
         TIMESTAMP updated_at
     }
     analytics {
         UUID id PK
-        UUID short_url_id FK
+        TEXT short_url_code FK
         INT number_of_clicks
         TIMESTAMP created_at
         TIMESTAMP updated_at
@@ -93,20 +91,20 @@ erDiagram
 ```
 - Another evolution can be to store per-click data. In a new table we could store the timestamp, the referrer, IP etc.
     - the dashboard could be enhanced with new data, IP country origin, time where it was clicked the most etc
+    - Of course IP addresses are considered personal data, the IP addresses will have the last part truncated. It would not be considered personal data anymore and would still give us geographical information.
 ```mermaid
 erDiagram
-    short_url ||--|| analytics : ""
+    short_url ||--o| analytics : ""
     analytics ||--o{ per_click_analytic : ""
     short_url {
-        UUID id PK
-        TEXT short_code UK
+        TEXT short_code PK
         TEXT original_url
         TIMESTAMP created_at
         TIMESTAMP updated_at
     }
     analytics {
         UUID id PK
-        UUID short_url_id FK
+        TEXT short_url_code FK
         INT number_of_clicks
         TIMESTAMP created_at
         TIMESTAMP updated_at
@@ -119,21 +117,23 @@ erDiagram
         TIMESTAMP clicked_at
     }
 ```
-- Privacy mode. The shortened URLs can be accessed by anyone as long as they know the short code. The short codes having a length of 7, can sometimes be guessed. A new feature could be to hide the access behind a password, or maybe authorize the access by a list of emails.
+- Privacy mode. The shortened URLs can be accessed by anyone as long as they know the short code. The short codes having a length of 7, can sometimes be guessed. A new feature could be to hide the access behind a password, or authorize the access by a list of emails.
+    - A new enum will be created, called `type`. The value can be either `PASSWORD` or `EMAIL` or `EMAIL_PASSWORD`.
+    - It would allow us in the code to easily detect which type of privacy setting is set, without having to query the linked entities.
 ```mermaid
 erDiagram
     short_url ||--o| privacy_setting : ""
     privacy_setting ||--o{ privacy_setting_member : ""
     short_url {
-        UUID id PK
-        TEXT short_code UK
+        TEXT short_code PK
         TEXT original_url
         TIMESTAMP created_at
         TIMESTAMP updated_at
     }
     privacy_setting {
         UUID id PK
-        UUID short_url_id FK
+        TEXT short_url_code FK
+        ENUM type
         TEXT password_hash
         TIMESTAMP created_at
         TIMESTAMP updated_at
@@ -146,17 +146,21 @@ erDiagram
         TIMESTAMP updated_at
     }
 ```
-- Custom short URLs and prefixes. If for example a company wants to track if a promotional campaign has some success it can track it via the analytics feature and to avoid customers being suspicious of a link with a generated short code, a feature could add custom URLs with custom prefixes.
-	- The custom prefix will allow multiple users to have the same custom short code
-	- Example `/company-name/MY-SUPER-PROMO-LINK`
+- Custom short URLs and prefixes. If a company wants to track whether a promotional campaign has some success it can track it via the analytics feature. We could think of a feature custom URLs with custom prefixes.
+	- The custom prefix will allow multiple companies to have the same custom short code
+	    - Example `/company-A-prefix/MY-SUPER-PROMO-LINK` and `/company-B-prefix/MY-SUPER-PROMO-LINK`
+    - A user could also be linked to multiple companies, thus the 0 to many relationship
+    - Here `company_short_url` and `short_url` are two different entities. In the code the distinction between whether the query is made to `short_url` or `company_short_url` will be made at the routing level :
+        - a HTTP query made to `/:prefix/:short_code` will query the table `company_short_url`
+        - a HTTP query made to `/:short_code` will query the table `short_url`
+
 ```mermaid
 erDiagram
     user ||--o{ user_company : ""
     user_company }o--|| company : ""
     user ||--o{ user_short_url : ""
-    user_short_url }o--|| short_url : ""
-    company ||--o{ company_custom_short_url : ""
-    company_custom_short_url |o--|| short_url : ""
+    user_short_url |o--|| short_url : ""
+    company ||--o{ company_short_url : ""
     user {
         UUID id PK
         TEXT username
@@ -169,11 +173,10 @@ erDiagram
     }
     user_short_url {
         UUID user_id PK
-        UUID short_code_id PK
+        TEXT short_url_code PK
     }
     short_url {
-        UUID id PK
-        TEXT short_code UK
+        TEXT short_code PK
         TEXT original_url
         TIMESTAMP created_at
         TIMESTAMP updated_at
@@ -185,10 +188,10 @@ erDiagram
         TIMESTAMP created_at
         TIMESTAMP updated_at
     }
-    company_custom_short_url {
+    company_short_url {
         UUID company_id PK
         TEXT custom_short_code PK
-        UUID short_code_id FK
+        TEXT original_url
         TIMESTAMP created_at
         TIMESTAMP updated_at
     }
@@ -198,15 +201,16 @@ Full feature roadmap :
 ```mermaid
 erDiagram
     user ||--o{ user_short_url: ""
-    user_short_url }o--|| short_url: ""
-    short_url ||--|| analytics : ""
+    user_short_url |o--|| short_url: ""
+    short_url |o--o| analytics : ""
     analytics ||--o{ per_click_analytic : ""
-    short_url ||--o| privacy_setting : ""
+    short_url |o--o| privacy_setting : ""
     privacy_setting ||--o{ privacy_setting_member : ""
     user ||--o{ user_company : ""
     user_company }o--|| company : ""
-    company ||--o{ company_custom_short_url : ""
-    company_custom_short_url |o--|| short_url : ""
+    company ||--o{ company_short_url : ""
+    company_short_url |o--o| analytics : ""
+    company_short_url |o--o| privacy_setting : ""
     user {
         UUID id PK
         TEXT username
@@ -219,18 +223,19 @@ erDiagram
     }
     user_short_url {
         UUID user_id PK
-        UUID short_code_id PK
+        TEXT short_url_code PK
     }
     short_url {
-        UUID id PK
-        TEXT short_code UK
+        TEXT short_code PK
         TEXT original_url
         TIMESTAMP created_at
         TIMESTAMP updated_at
     }
     analytics {
         UUID id PK
-        UUID short_url_id FK
+        TEXT short_url_code FK
+        UUID company_id FK
+        TEXT custom_short_code FK
         INT number_of_clicks
         TIMESTAMP created_at
         TIMESTAMP updated_at
@@ -244,7 +249,10 @@ erDiagram
     }
     privacy_setting {
         UUID id PK
-        UUID short_url_id FK
+        TEXT short_url_code FK
+        UUID company_id FK
+        TEXT custom_short_code FK
+        ENUM type
         TEXT password_hash
         TIMESTAMP created_at
         TIMESTAMP updated_at
@@ -263,10 +271,10 @@ erDiagram
         TIMESTAMP created_at
         TIMESTAMP updated_at
     }
-    company_custom_short_url {
+    company_short_url {
         UUID company_id PK
         TEXT custom_short_code PK
-        UUID short_code_id FK
+        TEXT original_url
         TIMESTAMP created_at
         TIMESTAMP updated_at
     }
