@@ -9,7 +9,7 @@ A fast, simple URL shortener.
 ## How to use this app
 
 - Create a `.env` file in `front/` and `back/` based on the `.env.dist` files
-- In a terminal run the command `make start`
+- In a terminal run the command `make start`. It will automatically build and start the docker containers.
 
 You can then access the frontend on the URL that you have given it.
 
